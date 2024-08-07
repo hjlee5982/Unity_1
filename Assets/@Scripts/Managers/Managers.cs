@@ -25,10 +25,10 @@ public class Managers : MonoBehaviour
 
     public static void Init()
     {
-        if(null == s_instance)
+        if(s_instance == null)
         {
             GameObject go = GameObject.Find("@Managers");
-            if(null == go)
+            if(go == null)
             {
                 go = new GameObject { name = "@Managers" };
                 go.AddComponent<Managers>();

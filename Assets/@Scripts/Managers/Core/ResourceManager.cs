@@ -15,7 +15,7 @@ public class ResourceManager
     #region Load Resource
     public T Load<T>(string key) where T : Object
     {
-        if (true == _resources.TryGetValue(key, out Object resource))
+        if (_resources.TryGetValue(key, out Object resource) == true)
         {
             return resource as T;
         }
@@ -45,7 +45,7 @@ public class ResourceManager
 
     public void Destroy(GameObject go)
     {
-        if (null == go)
+        if (go == null)
         {
             return;
         }
@@ -63,14 +63,14 @@ public class ResourceManager
     private void LoadAsync<T>(string key, Action<T> callback = null) where T : UnityEngine.Object
     {
         // Cache
-        if (true == _resources.TryGetValue(key, out Object resource))
+        if (_resources.TryGetValue(key, out Object resource) == true)
         {
             callback?.Invoke(resource as T);
             return;
         }
 
         string loadKey = key;
-        if (true == key.Contains(".sprite"))
+        if (key.Contains(".sprite") == true)
         {
             loadKey = $"{key}[{key.Replace(".sprite", "")}]";
         }
@@ -94,7 +94,7 @@ public class ResourceManager
 
             foreach (var result in op.Result)
             {
-                if (true == result.PrimaryKey.Contains(".sprite"))
+                if (result.PrimaryKey.Contains(".sprite") == true)
                 {
                     LoadAsync<Sprite>(result.PrimaryKey, (obj) =>
                     {
