@@ -44,7 +44,6 @@ public class Monster : Creature
         }
 
         CreatureType  = ECreatureType.Monster;
-        CreatureState = ECreatureState.Idle;
         Speed         = 3.0f;
 
         StartCoroutine(CoUpdateAI());

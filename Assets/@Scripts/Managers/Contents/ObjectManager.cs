@@ -7,6 +7,8 @@ public class ObjectManager
 {
     public HashSet<Hero>    Heroes   { get; } = new HashSet<Hero>();
     public HashSet<Monster> Monsters { get; } = new HashSet<Monster>();
+    public HashSet<Env>     Envs     { get; } = new HashSet<Env>();
+    public HeroCamp         Camp     { get; private set; }
 
     #region Roots
     public Transform GetRootTransform(string name)
@@ -23,9 +25,10 @@ public class ObjectManager
 
     public Transform HeroRoot    { get { return GetRootTransform("@Heroes");   } }
     public Transform MonsterRoot { get { return GetRootTransform("@Monsters"); } }
+	public Transform EnvRoot     { get { return GetRootTransform("@Envs");     } }
     #endregion
 
-    public T Spawn<T>(Vector3 position) where T : BaseObject
+    public T Spawn<T>(Vector3 position, int templateID) where T : BaseObject
     {
         string prefabName = typeof(T).Name;
 
@@ -37,6 +40,14 @@ public class ObjectManager
 
         if (obj.ObjectType == EObjectType.Creature)
         {
+            // Data Check
+            if (templateID != 0 && Managers.Data.CreatureDic.TryGetValue(templateID, out Data.CreatureData data) == false)
+            {
+                Debug.LogError($"ObjectManager Spawn Creature Failed! TryGetValue TemplateID : {templateID}");
+                
+                return null;
+            }
+
             Creature creature = go.GetComponent<Creature>();
             switch (creature.CreatureType)
             {
@@ -52,6 +63,8 @@ public class ObjectManager
                     Monsters.Add(monster);
                     break;
             }
+
+            creature.SetInfo(templateID);
         }
         else if (obj.ObjectType == EObjectType.Projectile)
         {
@@ -59,7 +72,24 @@ public class ObjectManager
         }
         else if (obj.ObjectType == EObjectType.Env)
         {
-            // TODO
+            // Data Check
+            if (templateID != 0 && Managers.Data.EnvDic.TryGetValue(templateID, out Data.EnvData data) == false)
+            {
+                Debug.LogError($"ObjectManager Spawn Env Failed! TryGetValue TemplateID : {templateID}");
+                
+                return null;
+            }
+
+            obj.transform.parent = EnvRoot;
+
+            Env env = go.GetComponent<Env>();
+            Envs.Add(env);
+
+            env.SetInfo(templateID);
+        }
+        else if (obj.ObjectType == EObjectType.HeroCamp)
+        {
+            Camp = go.GetComponent<HeroCamp>();
         }
 
         return obj as T;
@@ -91,7 +121,12 @@ public class ObjectManager
         }
         else if (obj.ObjectType == EObjectType.Env)
         {
-            // TODO
+            Env env = obj as Env;
+            Envs.Remove(env);
+        }
+        else if (obj.ObjectType == EObjectType.HeroCamp)
+        {
+            Camp = null;
         }
 
         Managers.Resource.Destroy(obj.gameObject);

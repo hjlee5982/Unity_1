@@ -2,6 +2,7 @@ using Spine.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static Define;
 
 public class BaseObject : InitBase
@@ -14,6 +15,8 @@ public class BaseObject : InitBase
     //public float ColliderRadius { get { return Collider != null ? Collider.radius : 0.0f; } }
     public float ColliderRadius   { get { return Collider?.radius ?? 0.0f; } }
     public Vector3 CenterPosition { get { return transform.position + Vector3.up * ColliderRadius; } }
+
+    public int DataTemplateID { get; set; }
 
     public override bool Init()
     {
@@ -55,6 +58,22 @@ public class BaseObject : InitBase
     }
 
     #region Spine
+    protected virtual void SetSpineAnimation(string dataLabel, int sortingOrder)
+    {
+        if (SkeletonAnim == null)
+        {
+            return;
+        }
+
+        SkeletonAnim.skeletonDataAsset = Managers.Resource.Load<SkeletonDataAsset>(dataLabel);
+        SkeletonAnim.Initialize(true);
+
+        // Spine SkeletonAnimation은 SpriteRenderer 를 사용하지 않고 MeshRenderer을 사용함
+        // 그렇기떄문에 2D Sort Axis가 안먹히게 되는데 SortingGroup을 SpriteRenderer,MeshRenderer을 같이 계산함.
+        SortingGroup sg = Util.GetOrAddComponent<SortingGroup>(gameObject);
+        sg.sortingOrder = sortingOrder;
+    }
+
     protected virtual void UpdateAnimation()
     {
     }
