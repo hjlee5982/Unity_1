@@ -7,8 +7,6 @@ using static Define;
 
 public class Creature : BaseObject
 {
-	public float Speed { get; protected set; } = 1.0f;
-
     public Data.CreatureData CreatureData { get; private set; }
     public ECreatureType     CreatureType { get; protected set; } = ECreatureType.None;
 
@@ -73,6 +71,12 @@ public class Creature : BaseObject
         SkeletonAnim.skeletonDataAsset = Managers.Resource.Load<SkeletonDataAsset>(CreatureData.SkeletonDataID);
         SkeletonAnim.Initialize(true);
 
+        if (SkeletonAnim.AnimationState != null)
+        {
+            SkeletonAnim.AnimationState.Event -= OnAnimEventHandler;
+            SkeletonAnim.AnimationState.Event += OnAnimEventHandler;
+        }
+
         // Spine SkeletonAnimation은 SpriteRenderer 를 사용하지 않고 MeshRenderer을 사용함.
         // 그렇기떄문에 2D Sort Axis가 안먹히게 되는데 SortingGroup을 SpriteRenderer, MeshRenderer을같이 계산함.
         SortingGroup sg = Util.GetOrAddComponent<SortingGroup>(gameObject);
@@ -118,6 +122,24 @@ public class Creature : BaseObject
         }
     }
 
+    public void ChangeColliderSize(EColliderSize size = EColliderSize.Normal)
+    {
+        switch (size)
+        {
+            case EColliderSize.Small:
+                Collider.radius = CreatureData.ColliderRadius * 0.8f;
+                break;
+
+            case EColliderSize.Normal:
+                Collider.radius = CreatureData.ColliderRadius;
+                break;
+
+            case EColliderSize.Big:
+                Collider.radius = CreatureData.ColliderRadius * 1.2f;
+                break;
+        }
+    }
+
     #region AI
     public float UpdateAITick { get; protected set; } = 0.0f;
 
@@ -155,10 +177,10 @@ public class Creature : BaseObject
         }
     }
 
-    protected virtual void UpdateIdle() { }
-    protected virtual void UpdateMove() { }
+    protected virtual void UpdateIdle()  { }
+    protected virtual void UpdateMove()  { }
     protected virtual void UpdateSkill() { }
-    protected virtual void UpdateDead() { }
+    protected virtual void UpdateDead()  { }
     #endregion
 
     #region Wait

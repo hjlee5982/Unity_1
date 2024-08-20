@@ -1,3 +1,4 @@
+using Spine;
 using Spine.Unity;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,11 +13,22 @@ public class BaseObject : InitBase
     public SkeletonAnimation SkeletonAnim { get; private set; }
     public Rigidbody2D       RigidBody    { get; private set; }
 
-    //public float ColliderRadius { get { return Collider != null ? Collider.radius : 0.0f; } }
-    public float ColliderRadius   { get { return Collider?.radius ?? 0.0f; } }
+    public float ColliderRadius { get { return Collider != null ? Collider.radius : 0.0f; } }
+    //public float ColliderRadius   { get { return Collider?.radius ?? 0.0f; } }
     public Vector3 CenterPosition { get { return transform.position + Vector3.up * ColliderRadius; } }
 
     public int DataTemplateID { get; set; }
+
+    bool _lookLeft = true;
+    public bool LookLeft
+    {
+        get { return _lookLeft; }
+        set
+        {
+            _lookLeft = value;
+            Flip(!value);
+        }
+    }
 
     public override bool Init()
     {
@@ -32,30 +44,17 @@ public class BaseObject : InitBase
         return true;
     }
 
-    bool _lookLeft = true;
-    public bool LookLeft
+    #region Battle
+    public virtual void OnDamaged(BaseObject attacker)
     {
-        get { return _lookLeft; }
-        set
-        {
-            _lookLeft = value;
-            Flip(!value);
-        }
+
     }
 
-    public void TranslateEx(Vector3 dir)
+    public virtual void OnDead(BaseObject attacker)
     {
-        transform.Translate(dir);
 
-        if (dir.x < 0)
-        {
-            LookLeft = true;
-        }
-        else if (dir.x > 0)
-        {
-            LookLeft = false;
-        }
     }
+    #endregion
 
     #region Spine
     protected virtual void SetSpineAnimation(string dataLabel, int sortingOrder)
@@ -76,6 +75,25 @@ public class BaseObject : InitBase
 
     protected virtual void UpdateAnimation()
     {
+    }
+
+    public void SetRigidBodyVelocity(Vector2 velocity)
+    {
+        if (RigidBody == null)
+        {
+            return;
+        }
+
+        RigidBody.velocity = velocity;
+
+        if (velocity.x < 0)
+        {
+            LookLeft = true;
+        }
+        else if (velocity.x > 0)
+        {
+            LookLeft = false;
+        }
     }
 
     public void PlayAnimation(int trackIndex, string AnimName, bool loop)
@@ -106,6 +124,11 @@ public class BaseObject : InitBase
         }
 
         SkeletonAnim.Skeleton.ScaleX = flag ? -1 : 1;
+    }
+
+    public virtual void OnAnimEventHandler(TrackEntry trackEntry, Spine.Event e)
+    {
+        Debug.Log("OnAnimEventHandler");
     }
     #endregion
 }
